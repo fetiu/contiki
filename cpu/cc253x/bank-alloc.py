@@ -107,7 +107,7 @@ def populate(project, modules, segment_rules, bins):
 			seg = get_object_seg(mod)
 			if seg is not None:
 				# This module has been assigned to a bank by the user
-				#print 'In', seg, file_name.group(0), 'size', code_size
+				#print('In', seg, file_name.group(0), 'size', code_size)
 				bins[seg][0] += code_size
 				user_total += code_size
 			else:
@@ -136,8 +136,8 @@ def bin_pack(modules, bins, offset, log):
 				break
 			else:
 				if bin_id == 'BANK7':
-					print "Failed to allocate", module[0], "with size", module[1], \
-						"to a code bank. This is fatal"
+					print("Failed to allocate", module[0], "with size", module[1], \
+						"to a code bank. This is fatal")
 					return 1
 	return 0
 
@@ -153,9 +153,9 @@ def relocate(module, bank):
 	return
 
 if len(sys.argv) < 3:
-	print 'Usage:'
-	print 'bank-alloc.py project path_to_segment_rules [offset]'
-	print 'bank-alloc.py source_file path_to_segment_rules object_file'
+	print('Usage:')
+	print('bank-alloc.py project path_to_segment_rules [offset]')
+	print('bank-alloc.py source_file path_to_segment_rules object_file')
 	sys.exit(1)
 
 modules = list()
@@ -168,16 +168,16 @@ basename, ext = os.path.splitext(file_name)
 if ext == '.c':
 	# Code Segment determination
 	if len(sys.argv) < 4:
-		print 'Usage:'
-		print 'bank-alloc.py project path_to_segment_rules [offset]'
-		print 'bank-alloc.py source_file path_to_segment_rules object_file'
+		print('Usage:')
+		print('bank-alloc.py project path_to_segment_rules [offset]')
+		print('bank-alloc.py source_file path_to_segment_rules object_file')
 		sys.exit(1)
 	object_file = sys.argv[3]
 	seg = get_source_seg(file_name, object_file, segment_rules)
 	if seg is None:
-		print "BANK1"
+		print("BANK1")
 	else:
-		print seg
+		print(seg)
 	exit()
 
 # Bin-Packing
@@ -203,29 +203,29 @@ sizes['total'] = get_total_size(basename)
 sizes['bankable'], sizes['user'] = populate(basename, modules, segment_rules, bins)
 sizes['libs'] = sizes['total'] - sizes['bankable'] - sizes['user']
 
-print 'Total Size =', sizes['total'], 'bytes (' + \
+print('Total Size =', sizes['total'], 'bytes (' + \
 	str(sizes['bankable']), 'bankable,', \
 	str(sizes['user']), 'user-allocated,', \
-	str(sizes['libs']), 'const+libs)'
+	str(sizes['libs']), 'const+libs)')
 
 bins['HOME'][0] += sizes['libs']
 
-print 'Preallocations: HOME=' + str(bins['HOME'][0]),
+print('Preallocations: HOME=' + str(bins['HOME'][0])),
 for bin_id in ['BANK1', 'BANK2', 'BANK3', 'BANK4', 'BANK5', 'BANK6', 'BANK7']:
 	if bins[bin_id][0] > 0:
-		print ", " + bin_id + "=" + str(bins[bin_id][0]),
-print
+		print(", " + bin_id + "=" + str(bins[bin_id][0])),
+print()
 
 # Open a log file
 of = open(basename + '.banks', 'w')
 pack = bin_pack(modules, bins, offset, of)
 of.close()
 
-print "Bin-Packing results (target allocation):"
-print "Segment - max - alloc"
+print("Bin-Packing results (target allocation):")
+print("Segment - max - alloc")
 for bin_id in ['HOME', 'BANK1', 'BANK2', 'BANK3', 'BANK4', 'BANK5', 'BANK6', 'BANK7']:
 	if bins[bin_id][0] > 0:
-		print bin_id.rjust(7), str(bins[bin_id][1]).rjust(6), str(bins[bin_id][0]).rjust(6)
+		print(bin_id.rjust(7), str(bins[bin_id][1]).rjust(6), str(bins[bin_id][0]).rjust(6))
 
 if pack > 0:
 	sys.exit(1)

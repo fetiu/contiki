@@ -65,6 +65,7 @@ AUTOSTART_PROCESSES(&udp_server_process);
 static void
 tcpip_handler(void)
 {
+  putstring("@\n");
   memset(buf, 0, MAX_PAYLOAD_LEN);
   if(uip_newdata()) {
     leds_on(LEDS_RED);

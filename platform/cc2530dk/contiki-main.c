@@ -298,6 +298,7 @@ main(void) CC_NON_BANKED
     } while(r > 0);
     len = NETSTACK_RADIO.pending_packet();
     if(len) {
+      PUTSTRING("pending\n");
       packetbuf_clear();
       len = NETSTACK_RADIO.read(packetbuf_dataptr(), PACKETBUF_SIZE);
       if(len > 0) {

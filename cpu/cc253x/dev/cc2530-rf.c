@@ -72,7 +72,7 @@
 #define RF_TX_LED_OFF()
 #endif
 /*---------------------------------------------------------------------------*/
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #include "debug.h"
 #define PUTSTRING(...) putstring(__VA_ARGS__)

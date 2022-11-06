@@ -33,7 +33,7 @@
 
 #include <string.h>
 
-#define DEBUG DEBUG_PRINT
+#define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 #include "dev/watchdog.h"
 #include "dev/leds.h"
@@ -65,7 +65,6 @@ AUTOSTART_PROCESSES(&udp_server_process);
 static void
 tcpip_handler(void)
 {
-  putstring("@\n");
   memset(buf, 0, MAX_PAYLOAD_LEN);
   if(uip_newdata()) {
     leds_on(LEDS_RED);

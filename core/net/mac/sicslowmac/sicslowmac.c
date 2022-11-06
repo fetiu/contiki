@@ -51,7 +51,7 @@
 #include "net/netstack.h"
 #include "lib/random.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 #if DEBUG
 #include <stdio.h>

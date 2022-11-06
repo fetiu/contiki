@@ -51,7 +51,7 @@
 #include "sys/cooja_mt.h"
 #endif /* CONTIKI_TARGET_COOJA || CONTIKI_TARGET_COOJA_IP64 */
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -322,7 +322,6 @@ packet_input(void)
     }
 #endif /* NULLRDC_SEND_ACK */
     if(!duplicate) {
-      PRINTF("input\n");
       NETSTACK_MAC.input();
     }
   }

@@ -48,7 +48,7 @@
 
 #include "contiki.h"
 /*---------------------------------------------------------------------------*/
-#if MODELS_CONF_CC2531_USB_STICK
+#if 0
 #include "dev/usb-serial.h"
 #define IO_ARCH_PREFIX usb_serial
 

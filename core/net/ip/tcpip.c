@@ -804,7 +804,6 @@ tcpip_uipcall(void)
   }
 #endif /* UIP_TCP */
 
-    printf("you should finally reach here\n");
   if(ts->p != NULL) {
     process_post_synch(ts->p, tcpip_event, ts->state);
   }

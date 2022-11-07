@@ -143,15 +143,6 @@ create_dag()
   }
 }
 #endif /* SERVER_RPL_ROOT */
-
-static void
-on_packet_received(void)
-{
-  printf("it's packet!\n");
-}
-
-RIME_SNIFFER(s, on_packet_received, NULL);
-
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(udp_server_process, ev, data)
 {
@@ -171,8 +162,6 @@ PROCESS_THREAD(udp_server_process, ev, data)
   udp_bind(server_conn, UIP_HTONS(3000));
 
   PRINTF("Listen port: 3000, TTL=%u\n", server_conn->ttl);
-
-  rime_sniffer_add(&s);
 
   while(1) {
     PROCESS_YIELD();

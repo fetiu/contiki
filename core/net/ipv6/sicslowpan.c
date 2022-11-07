@@ -1743,7 +1743,7 @@ sicslowpan_init(void)
    * send a packet.
    */
 
-  // tcpip_set_outputfunc(output);
+  tcpip_set_outputfunc(output);
 
 #if SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC06
 /* Preinitialize any address contexts for better header compression

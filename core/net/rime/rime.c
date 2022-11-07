@@ -87,6 +87,7 @@
 
 LIST(sniffers);
 
+#if 0
 /*---------------------------------------------------------------------------*/
 void
 rime_sniffer_add(struct rime_sniffer *s)
@@ -99,6 +100,7 @@ rime_sniffer_remove(struct rime_sniffer *s)
 {
   list_remove(sniffers, s);
 }
+#endif
 /*---------------------------------------------------------------------------*/
 static void
 input(void)

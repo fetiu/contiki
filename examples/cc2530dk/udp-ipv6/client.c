@@ -36,7 +36,7 @@
 #include "dev/button-sensor.h"
 #include "debug.h"
 
-#define DEBUG DEBUG_NONE
+#define DEBUG DEBUG_PRINT
 #include "net/ip/uip-debug.h"
 
 #define SEND_INTERVAL		2 * CLOCK_SECOND
@@ -47,10 +47,6 @@ static char buf[MAX_PAYLOAD_LEN];
 /* Our destinations and udp conns. One link-local and one global */
 #define LOCAL_CONN_PORT 3001
 static struct uip_udp_conn *l_conn;
-#if UIP_CONF_ROUTER
-#define GLOBAL_CONN_PORT 3002
-static struct uip_udp_conn *g_conn;
-#endif
 
 /*---------------------------------------------------------------------------*/
 PROCESS(udp_client_process, "UDP client process");
@@ -81,31 +77,20 @@ static void
 timeout_handler(void)
 {
   static int seq_id;
-  struct uip_udp_conn *this_conn;
 
   leds_on(LEDS_RED);
   memset(buf, 0, MAX_PAYLOAD_LEN);
   seq_id++;
 
-  /* evens / odds */
-  if(seq_id & 0x01) {
-    this_conn = l_conn;
-  } else {
-    this_conn = g_conn;
-    if(uip_ds6_get_global(ADDR_PREFERRED) == NULL) {
-      return;
-    }
-  }
-
   PRINTF("Client to: ");
-  PRINT6ADDR(&this_conn->ripaddr);
+  PRINT6ADDR(&l_conn->ripaddr);
 
   memcpy(buf, &seq_id, sizeof(seq_id));
 
-  PRINTF(" Remote Port %u,", UIP_HTONS(this_conn->rport));
+  PRINTF(" Remote Port %u,", UIP_HTONS(l_conn->rport));
   PRINTF(" (msg=0x%04x), %u bytes\n", *(uint16_t *) buf, sizeof(seq_id));
 
-  uip_udp_packet_send(this_conn, buf, sizeof(seq_id));
+  uip_udp_packet_send(l_conn, buf, sizeof(seq_id));
   leds_off(LEDS_RED);
 }
 /*---------------------------------------------------------------------------*/
@@ -117,7 +102,7 @@ PROCESS_THREAD(udp_client_process, ev, data)
   PROCESS_BEGIN();
   PRINTF("UDP client process started\n");
 
-  uip_ip6addr(&ipaddr, 0xfe80, 0, 0, 0, 0x0212, 0x4b00, 0x1cd4, 0xfa8e);
+  uip_ip6addr(&ipaddr, 0xfe80, 0, 0, 0, 0x0215, 0x2000, 0x0002, 0x2145);
   /* new connection with remote host */
   l_conn = udp_new(&ipaddr, UIP_HTONS(3000), NULL);
   if(!l_conn) {
@@ -129,18 +114,6 @@ PROCESS_THREAD(udp_client_process, ev, data)
   PRINT6ADDR(&l_conn->ripaddr);
   PRINTF(" local/remote port %u/%u\n",
          UIP_HTONS(l_conn->lport), UIP_HTONS(l_conn->rport));
-
-  uip_ip6addr(&ipaddr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0x0212, 0x4b00, 0x1cd4, 0xfa8e);
-  g_conn = udp_new(&ipaddr, UIP_HTONS(3000), NULL);
-  if(!g_conn) {
-    PRINTF("udp_new g_conn error.\n");
-  }
-  udp_bind(g_conn, UIP_HTONS(GLOBAL_CONN_PORT));
-
-  PRINTF("Global connection with ");
-  PRINT6ADDR(&g_conn->ripaddr);
-  PRINTF(" local/remote port %u/%u\n",
-         UIP_HTONS(g_conn->lport), UIP_HTONS(g_conn->rport));
 
   etimer_set(&et, SEND_INTERVAL);
 

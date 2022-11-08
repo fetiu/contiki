@@ -158,6 +158,9 @@ PROCESS_THREAD(udp_server_process, ev, data)
   create_dag();
 #endif
 
+  // This able transmission which triggers crash 
+  tcpip_set_outputfunc(NULL);
+
   server_conn = udp_new(NULL, UIP_HTONS(0), NULL);
   udp_bind(server_conn, UIP_HTONS(3000));
 

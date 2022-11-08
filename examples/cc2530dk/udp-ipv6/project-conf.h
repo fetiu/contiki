@@ -42,7 +42,7 @@
 #ifndef PROJECT_CONF_H_
 #define PROJECT_CONF_H_
 
-#define BUTTON_SENSOR_CONF_ON 1
+#define BUTTON_SENSOR_CONF_ON 0
 #define ADC_SENSOR_CONF_ON    0
 #define UIP_CONF_ICMP6        1
 #define RIMESTATS_CONF_ENABLED 1

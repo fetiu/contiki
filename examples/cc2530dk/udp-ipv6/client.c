@@ -77,20 +77,20 @@ static void
 timeout_handler(void)
 {
   static int seq_id;
+  int buflen;
 
   leds_on(LEDS_RED);
-  memset(buf, 0, MAX_PAYLOAD_LEN);
   seq_id++;
 
   PRINTF("Client to: ");
   PRINT6ADDR(&l_conn->ripaddr);
 
-  memcpy(buf, &seq_id, sizeof(seq_id));
+  buflen = sprintf(buf, "udp: %d", seq_id % 10);
 
   PRINTF(" Remote Port %u,", UIP_HTONS(l_conn->rport));
-  PRINTF(" (msg=0x%04x), %u bytes\n", *(uint16_t *) buf, sizeof(seq_id));
+  PRINTF(" (msg=0x%04x), %u bytes\n", *(uint16_t *) buf, buflen);
 
-  uip_udp_packet_send(l_conn, buf, sizeof(seq_id));
+  uip_udp_packet_send(l_conn, buf, buflen);
   leds_off(LEDS_RED);
 }
 /*---------------------------------------------------------------------------*/
@@ -102,7 +102,7 @@ PROCESS_THREAD(udp_client_process, ev, data)
   PROCESS_BEGIN();
   PRINTF("UDP client process started\n");
 
-  uip_ip6addr(&ipaddr, 0xfe80, 0, 0, 0, 0x0215, 0x2000, 0x0002, 0x2145);
+  uip_create_linklocal_allrouters_mcast(&ipaddr);
   /* new connection with remote host */
   l_conn = udp_new(&ipaddr, UIP_HTONS(3000), NULL);
   if(!l_conn) {

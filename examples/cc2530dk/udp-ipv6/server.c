@@ -50,7 +50,7 @@ static struct uip_udp_conn *server_conn;
 static char buf[MAX_PAYLOAD_LEN];
 static uint16_t len;
 
-#define SERVER_REPLY          1
+#define SERVER_REPLY          0
 
 /* Should we act as RPL root? */
 #define SERVER_RPL_ROOT       0
@@ -67,7 +67,7 @@ tcpip_handler(void)
 {
   memset(buf, 0, MAX_PAYLOAD_LEN);
   if(uip_newdata()) {
-    leds_on(LEDS_RED);
+    leds_on(LEDS_GREEN);
     len = uip_datalen();
     memcpy(buf, uip_appdata, len);
     PRINTF("%u bytes from [", len);
@@ -83,7 +83,7 @@ tcpip_handler(void)
     server_conn->rport = 0;
 #endif
   }
-  leds_off(LEDS_RED);
+  leds_off(LEDS_GREEN);
   return;
 }
 /*---------------------------------------------------------------------------*/
@@ -158,7 +158,7 @@ PROCESS_THREAD(udp_server_process, ev, data)
   create_dag();
 #endif
 
-  // This able transmission which triggers crash 
+  // Disable transmission to prevent crash
   tcpip_set_outputfunc(NULL);
 
   server_conn = udp_new(NULL, UIP_HTONS(0), NULL);

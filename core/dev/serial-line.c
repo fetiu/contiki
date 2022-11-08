@@ -33,6 +33,7 @@
 #include <string.h> /* for memcpy() */
 
 #include "lib/ringbuf.h"
+#include "dev/leds.h"
 
 #ifdef SERIAL_LINE_CONF_BUFSIZE
 #define BUFSIZE SERIAL_LINE_CONF_BUFSIZE
@@ -45,8 +46,7 @@
 #error Change SERIAL_LINE_CONF_BUFSIZE in contiki-conf.h.
 #endif
 
-#define IGNORE_CHAR(c) (c == 0x0d)
-#define END 0x0a
+#define IS_END(c) (c == 0x0a || c == 0x0d)
 
 static struct ringbuf rxbuf;
 static uint8_t rxbuf_data[BUFSIZE];
@@ -60,11 +60,8 @@ int
 serial_line_input_byte(unsigned char c)
 {
   static uint8_t overflow = 0; /* Buffer overflow: ignore until END */
-  
-  if(IGNORE_CHAR(c)) {
-    return 0;
-  }
 
+  leds_on(LEDS_RED);
   if(!overflow) {
     /* Add character */
     if(ringbuf_put(&rxbuf, c) == 0) {
@@ -74,13 +71,14 @@ serial_line_input_byte(unsigned char c)
   } else {
     /* Buffer overflowed:
      * Only (try to) add terminator characters, otherwise skip */
-    if(c == END && ringbuf_put(&rxbuf, c) != 0) {
+    if(IS_END(c) && ringbuf_put(&rxbuf, c) != 0) {
       overflow = 0;
     }
   }
 
   /* Wake up consumer process */
   process_poll(&serial_line_process);
+  leds_off(LEDS_RED);
   return 1;
 }
 /*---------------------------------------------------------------------------*/
@@ -102,7 +100,7 @@ PROCESS_THREAD(serial_line_process, ev, data)
       /* Buffer empty, wait for poll */
       PROCESS_YIELD();
     } else {
-      if(c != END) {
+      if(!IS_END(c)) {
         if(ptr < BUFSIZE-1) {
           buf[ptr++] = (uint8_t)c;
         } else {
@@ -110,6 +108,7 @@ PROCESS_THREAD(serial_line_process, ev, data)
         }
       } else {
         /* Terminate */
+        buf[ptr++] = (uint8_t)'\n';
         buf[ptr++] = (uint8_t)'\0';
 
         /* Broadcast event */

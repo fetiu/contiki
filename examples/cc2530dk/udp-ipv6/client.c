@@ -36,11 +36,10 @@
 #include "dev/button-sensor.h"
 #include "debug.h"
 
-#define DEBUG DEBUG_PRINT
+#define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 
-#define SEND_INTERVAL		2 * CLOCK_SECOND
-#define MAX_PAYLOAD_LEN		40
+#define MAX_PAYLOAD_LEN		5
 
 static char buf[MAX_PAYLOAD_LEN];
 
@@ -48,59 +47,41 @@ static char buf[MAX_PAYLOAD_LEN];
 #define LOCAL_CONN_PORT 3001
 static struct uip_udp_conn *l_conn;
 
-/*---------------------------------------------------------------------------*/
 PROCESS(udp_client_process, "UDP client process");
-#if BUTTON_SENSOR_ON
-PROCESS_NAME(ping6_process);
-AUTOSTART_PROCESSES(&udp_client_process, &ping6_process);
-#else
 AUTOSTART_PROCESSES(&udp_client_process);
-#endif
-/*---------------------------------------------------------------------------*/
-static void
-tcpip_handler(void)
-{
-  leds_on(LEDS_GREEN);
-  if(uip_newdata()) {
-    putstring("0x");
-    puthex(uip_datalen());
-    putstring(" bytes response=0x");
-    puthex((*(uint16_t *) uip_appdata) >> 8);
-    puthex((*(uint16_t *) uip_appdata) & 0xFF);
-    putchar('\n');
-  }
-  leds_off(LEDS_GREEN);
-  return;
-}
-/*---------------------------------------------------------------------------*/
-static void
-timeout_handler(void)
-{
-  static int seq_id;
-  int buflen;
+extern process_event_t serial_line_event_message;
 
+static void
+udp_send_serial(const char *data)
+{
+  int left, len;
   leds_on(LEDS_RED);
-  seq_id++;
-
-  PRINTF("Client to: ");
-  PRINT6ADDR(&l_conn->ripaddr);
-
-  buflen = sprintf(buf, "udp: %d", seq_id % 10);
-
-  PRINTF(" Remote Port %u,", UIP_HTONS(l_conn->rport));
-  PRINTF(" (msg=0x%04x), %u bytes\n", *(uint16_t *) buf, buflen);
-
-  uip_udp_packet_send(l_conn, buf, buflen);
+  left = strlen(data);
+  while (left > 0)
+  {
+    len = MIN(left, MAX_PAYLOAD_LEN);
+    uip_udp_packet_send(l_conn, data, len);
+    data += len;
+    left -= len;
+  }
   leds_off(LEDS_RED);
 }
+
+static void
+on_packet_received(void)
+{
+  PRINTF("ignore incoming packet\n");
+  uip_clear_buf();
+}
+
+RIME_SNIFFER(packet_remover, on_packet_received, NULL);
+
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(udp_client_process, ev, data)
 {
-  static struct etimer et;
   uip_ipaddr_t ipaddr;
 
   PROCESS_BEGIN();
-  PRINTF("UDP client process started\n");
 
   uip_create_linklocal_allrouters_mcast(&ipaddr);
   /* new connection with remote host */
@@ -115,15 +96,12 @@ PROCESS_THREAD(udp_client_process, ev, data)
   PRINTF(" local/remote port %u/%u\n",
          UIP_HTONS(l_conn->lport), UIP_HTONS(l_conn->rport));
 
-  etimer_set(&et, SEND_INTERVAL);
+  rime_sniffer_add(&packet_remover);
 
   while(1) {
-    PROCESS_YIELD();
-    if(etimer_expired(&et)) {
-      timeout_handler();
-      etimer_restart(&et);
-    } else if(ev == tcpip_event) {
-      tcpip_handler();
+    PROCESS_WAIT_EVENT();
+    if (ev == serial_line_event_message) {
+      udp_send_serial(data);
     }
   }
 

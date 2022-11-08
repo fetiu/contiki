@@ -39,10 +39,6 @@
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 
-#define MAX_PAYLOAD_LEN		5
-
-static char buf[MAX_PAYLOAD_LEN];
-
 /* Our destinations and udp conns. One link-local and one global */
 #define LOCAL_CONN_PORT 3001
 static struct uip_udp_conn *l_conn;
@@ -53,18 +49,8 @@ extern process_event_t serial_line_event_message;
 
 static void
 udp_send_serial(const char *data)
-{
-  int left, len;
-  leds_on(LEDS_RED);
-  left = strlen(data);
-  while (left > 0)
-  {
-    len = MIN(left, MAX_PAYLOAD_LEN);
-    uip_udp_packet_send(l_conn, data, len);
-    data += len;
-    left -= len;
-  }
-  leds_off(LEDS_RED);
+{  
+  uip_udp_packet_send(l_conn, data, strlen(data));
 }
 
 static void
@@ -84,22 +70,13 @@ PROCESS_THREAD(udp_client_process, ev, data)
   PROCESS_BEGIN();
 
   uip_create_linklocal_allrouters_mcast(&ipaddr);
-  /* new connection with remote host */
   l_conn = udp_new(&ipaddr, UIP_HTONS(3000), NULL);
-  if(!l_conn) {
-    PRINTF("udp_new l_conn error.\n");
-  }
   udp_bind(l_conn, UIP_HTONS(LOCAL_CONN_PORT));
-
-  PRINTF("Link-Local connection with ");
-  PRINT6ADDR(&l_conn->ripaddr);
-  PRINTF(" local/remote port %u/%u\n",
-         UIP_HTONS(l_conn->lport), UIP_HTONS(l_conn->rport));
-
+  
   rime_sniffer_add(&packet_remover);
 
   while(1) {
-    PROCESS_WAIT_EVENT();
+    PROCESS_YIELD();
     if (ev == serial_line_event_message) {
       udp_send_serial(data);
     }

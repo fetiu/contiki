@@ -95,7 +95,7 @@
 /* For Debug, logging, statistics                                            */
 /*---------------------------------------------------------------------------*/
 
-#define DEBUG DEBUG_PRINT
+#define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 
 #if UIP_LOGGING == 1
@@ -1556,7 +1556,7 @@ uip_process(uint8_t flag)
   UIP_UDP_APPCALL();
 
   udp_send:
-  PRINTF("In udp_send\n");
+  PRINTF("In udp_send %d\n", uip_slen);
 
   if(uip_slen == 0) {
     goto drop;
@@ -2323,6 +2323,7 @@ uip_process(uint8_t flag)
   uip_clear_buf();
   uip_ext_bitmap = 0;
   uip_flags = 0;
+  PRINTF("dropped\n");
   return;
 }
 /*---------------------------------------------------------------------------*/

@@ -33,7 +33,7 @@
 
 #include <string.h>
 
-#define DEBUG DEBUG_NONE
+#define DEBUG DEBUG_PRINT
 #include "net/ip/uip-debug.h"
 #include "dev/watchdog.h"
 #include "dev/leds.h"
@@ -48,7 +48,7 @@
 
 static struct uip_udp_conn *server_conn;
 static char buf[MAX_PAYLOAD_LEN];
-static uint16_t len;
+// static uint16_t len;
 
 #define SERVER_REPLY          0
 
@@ -63,16 +63,29 @@ PROCESS(udp_server_process, "UDP server process");
 AUTOSTART_PROCESSES(&udp_server_process);
 /*---------------------------------------------------------------------------*/
 static void
+print_new_src(uip_ip6addr_t *new)
+{
+  static uip_ip6addr_t now;
+  if (!uip_ipaddr_cmp(&now, &UIP_IP_BUF->srcipaddr)) {
+    memcpy(&now, new, sizeof now);
+    putchar('\n');
+    putchar('}');
+    puthex(now.u8[14]);
+    puthex(now.u8[15]);
+    putchar('{');
+    putchar('\n');
+  }
+}
+
+static void
 tcpip_handler(void)
 {
   memset(buf, 0, MAX_PAYLOAD_LEN);
   if(uip_newdata()) {
     leds_on(LEDS_GREEN);
-    len = uip_datalen();
-    memcpy(buf, uip_appdata, len);
-    PRINTF("%u bytes from [", len);
-    PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
-    PRINTF("]:%u\n", UIP_HTONS(UIP_UDP_BUF->srcport));
+    print_new_src(&UIP_IP_BUF->srcipaddr);
+    // len = uip_datalen();
+    putstring(uip_appdata);
 #if SERVER_REPLY
     uip_ipaddr_copy(&server_conn->ripaddr, &UIP_IP_BUF->srcipaddr);
     server_conn->rport = UIP_UDP_BUF->srcport;
@@ -148,7 +161,7 @@ PROCESS_THREAD(udp_server_process, ev, data)
 {
 
   PROCESS_BEGIN();
-  putstring("Starting UDP server\n");
+  // putstring("Starting UDP server\n");
 
 #if BUTTON_SENSOR_ON
   putstring("Button 1: Print RIME stats\n");
@@ -158,7 +171,7 @@ PROCESS_THREAD(udp_server_process, ev, data)
   create_dag();
 #endif
 
-  // Disable transmission to prevent crash
+  // Disable transmission to nowent crash
   tcpip_set_outputfunc(NULL);
 
   server_conn = udp_new(NULL, UIP_HTONS(0), NULL);

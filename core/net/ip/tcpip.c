@@ -522,6 +522,7 @@ void
 tcpip_input(void)
 {
   process_post_synch(&tcpip_process, PACKET_INPUT, NULL);
+  PRINTF("come back! - just in case it fails\n");
   uip_clear_buf();
 }
 /*---------------------------------------------------------------------------*/

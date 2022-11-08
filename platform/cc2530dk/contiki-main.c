@@ -191,26 +191,26 @@ main(void) CC_NON_BANKED
   fade(LEDS_RED);
 
   PUTSTRING("##########################################\n");
-  putstring(CONTIKI_VERSION_STRING "\n");
-  putstring(MODEL_STRING);
+  PUTSTRING(CONTIKI_VERSION_STRING "\n");
+  PUTSTRING(MODEL_STRING);
   switch(CHIPID) {
   case 0xA5:
-    putstring("cc2530");
+    PUTSTRING("cc2530");
     break;
   case 0xB5:
-    putstring("cc2531");
+    PUTSTRING("cc2531");
     break;
   case 0x95:
-    putstring("cc2533");
+    PUTSTRING("cc2533");
     break;
   case 0x8D:
-    putstring("cc2540");
+    PUTSTRING("cc2540");
     break;
   }
 
-  putstring("-" CC2530_FLAVOR_STRING ", ");
+  PUTSTRING("-" CC2530_FLAVOR_STRING ", ");
   puthex(CHIPINFO1 + 1);
-  putstring("KB SRAM\n");
+  PUTSTRING("KB SRAM\n");
 
   PUTSTRING("\nSDCC Build:\n");
 #if STARTUP_CONF_VERBOSE

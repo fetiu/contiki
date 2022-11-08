@@ -32,12 +32,12 @@
 #include "contiki-net.h"
 
 #include <string.h>
-#include "dev/leds.h"
-#include "dev/button-sensor.h"
-#include "debug.h"
 
 #define DEBUG DEBUG_NONE
-#include "net/ip/uip-debug.h"
+#include "debug.h"
+#include "uart0.h"
+#include "dev/leds.h"
+#include "serial-line.h"
 
 /* Our destinations and udp conns. One link-local and one global */
 #define LOCAL_CONN_PORT 3001
@@ -45,22 +45,13 @@ static struct uip_udp_conn *l_conn;
 
 PROCESS(udp_client_process, "UDP client process");
 AUTOSTART_PROCESSES(&udp_client_process);
-extern process_event_t serial_line_event_message;
 
 static void
 udp_send_serial(const char *data)
 {  
-  uip_udp_packet_send(l_conn, data, strlen(data));
+  int len = strlen(data) + 1; // for '\0'
+  uip_udp_packet_send(l_conn, data, len);
 }
-
-static void
-on_packet_received(void)
-{
-  PRINTF("ignore incoming packet\n");
-  uip_clear_buf();
-}
-
-RIME_SNIFFER(packet_remover, on_packet_received, NULL);
 
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(udp_client_process, ev, data)
@@ -69,12 +60,12 @@ PROCESS_THREAD(udp_client_process, ev, data)
 
   PROCESS_BEGIN();
 
+  uart0_set_input(serial_line_input_byte);
+
   uip_create_linklocal_allrouters_mcast(&ipaddr);
   l_conn = udp_new(&ipaddr, UIP_HTONS(3000), NULL);
   udp_bind(l_conn, UIP_HTONS(LOCAL_CONN_PORT));
   
-  rime_sniffer_add(&packet_remover);
-
   while(1) {
     PROCESS_YIELD();
     if (ev == serial_line_event_message) {

@@ -62,7 +62,7 @@
  *
  * More information on the wiki
  */
-#define CC_CONF_OPTIMIZE_STACK_SIZE 0
+#define CC_CONF_OPTIMIZE_STACK_SIZE 1
 
 #if CC_CONF_OPTIMIZE_STACK_SIZE
 #define CC_AT_DATA

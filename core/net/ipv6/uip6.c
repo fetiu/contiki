@@ -1258,10 +1258,6 @@ uip_process(uint8_t flag)
         goto send;
       }
       PRINTF("Dropping packet, not for me and link local or multicast\n");
-      if (*uip_next_hdr == UIP_PROTO_UDP) {
-        PRINTF("*UDP detected* procssing");
-        goto udp_input;
-      }
       UIP_STAT(++uip_stat.ip.drop);
       goto drop;
     }
